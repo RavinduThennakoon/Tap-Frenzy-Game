@@ -56,7 +56,7 @@ struct ContentView: View {
                 Text("TAP")
                     .font(.title)
                     .frame(width: 160, height: 160)
-                    .background(Color.green)
+                    .background(isBonusColor ? Color.green : Color.gray)
                     .foregroundStyle(.white)
                     .clipShape(Circle())
             }
