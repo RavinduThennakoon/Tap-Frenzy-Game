@@ -2,8 +2,9 @@ import SwiftUI
 
 struct LightItUpView: View {
     @State private var cards: [Card] = []
-    @State private var litCardIDs: Set<Int> = [0]
+    @State private var litCardIDs: Set<Int> = []
     @State private var level: Level = .l1
+    @State private var isRoundActive = true
 
     private var columns: [GridItem] {
         Array(repeating: GridItem(.flexible(), spacing: 10), count: level.columns)
@@ -28,7 +29,26 @@ struct LightItUpView: View {
         .navigationTitle("Light It Up")
         .onAppear {
             cards = (0..<level.gridSize).map { Card(id: $0) }
+            scheduleNextFlip()
         }
+        .onDisappear {
+            isRoundActive = false
+        }
+    }
+
+    private func scheduleNextFlip() {
+        guard isRoundActive else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + level.litWindow) {
+            guard isRoundActive else { return }
+            flipRandomCards()
+            scheduleNextFlip()
+        }
+    }
+
+    private func flipRandomCards() {
+        let chosenIDs = cards.map(\.id).shuffled().prefix(level.simultaneousLit)
+        litCardIDs = Set(chosenIDs)
     }
 }
 
