@@ -1,18 +1,37 @@
 import SwiftUI
 
 struct LightItUpView: View {
-	var body: some View {
-		VStack(spacing: 16) {
-			Text("Light It Up")
-				.font(.largeTitle.bold())
-			Text("This mode is under construction.")
-				.foregroundStyle(.secondary)
-		}
-		.navigationTitle("Light It Up")
-		.padding()
-	}
+    @State private var cards: [Card] = []
+    @State private var litCardIDs: Set<Int> = [0]
+    @State private var level: Level = .l1
+
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 10), count: level.columns)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            Text("Light It Up")
+                .font(.largeTitle.bold())
+
+            LazyVGrid(columns: columns, spacing: 10) {
+                ForEach(cards) { card in
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(litCardIDs.contains(card.id) ? Color.yellow : Color.gray.opacity(0.25))
+                        .scaleEffect(litCardIDs.contains(card.id) ? 1.05 : 1.0)
+                        .frame(height: 80)
+                }
+            }
+            .animation(.easeInOut(duration: 0.15), value: litCardIDs)
+            .padding()
+        }
+        .navigationTitle("Light It Up")
+        .onAppear {
+            cards = (0..<level.gridSize).map { Card(id: $0) }
+        }
+    }
 }
 
 #Preview {
-	LightItUpView()
+    LightItUpView()
 }
