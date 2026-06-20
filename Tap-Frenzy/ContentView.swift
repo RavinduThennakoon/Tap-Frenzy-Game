@@ -7,6 +7,8 @@ struct ContentView: View {
     @State private var timeRemaining = 10
     @State private var isGameOver = false
     @State private var highScore = 0
+    @State private var isBonusColor = true
+    @State private var colorSwitchCounter = 0
 
     // A timer that fires once per second
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -32,11 +34,24 @@ struct ContentView: View {
             Text("Time: \(timeRemaining)")
                 .font(.title3)
                 .foregroundStyle(.secondary)
+            
+         
+
+            Text(isBonusColor ? "BONUS! Tap for +1" : "PENALTY! Tap costs -1")
+                .font(.headline)
+                .foregroundStyle(isBonusColor ? .green : .red)
 
             Spacer()
 
+            
             Button(action: {
-                score += 1
+                if isBonusColor{
+                    score += 1
+                } else{
+                    score = max(0, score - 1)
+                    
+                }
+                
             }) {
                 Text("TAP")
                     .font(.title)
@@ -52,6 +67,12 @@ struct ContentView: View {
         .onReceive(timer) { _ in
             if timeRemaining > 0 {
                 timeRemaining -= 1
+                
+                colorSwitchCounter += 1
+                if colorSwitchCounter >= 3 {
+                    isBonusColor.toggle()
+                    colorSwitchCounter = 0
+                }
             } else {
                 endGame()
             }
