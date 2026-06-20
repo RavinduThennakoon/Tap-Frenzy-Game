@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var timeRemaining = 10
     @State private var isGameOver = false
     @State private var highScore = 0
+    @Environment(\.dismiss) private var dismiss
     @State private var isBonusColor = true
     @State private var colorSwitchCounter = 0
 
@@ -88,7 +89,6 @@ struct ContentView: View {
 
             Text("Final Score: \(score)")
                 .font(.title2)
-
             if score >= highScore {
                 Text("New High Score!")
                     .foregroundStyle(.red)
@@ -97,14 +97,25 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Button("Play Again") {
-                resetGame()
+            HStack(spacing: 16) {
+                Button("Play Again") {
+                    resetGame()
+                }
+                .font(.title3)
+                .padding()
+                .background(Color.blue)
+                .foregroundStyle(.white)
+                .clipShape(Capsule())
+
+                Button("Home") {
+                    dismiss()
+                }
+                .font(.title3)
+                .padding()
+                .background(Color.gray.opacity(0.2))
+                .foregroundStyle(.primary)
+                .clipShape(Capsule())
             }
-            .font(.title3)
-            .padding()
-            .background(Color.blue)
-            .foregroundStyle(.white)
-            .clipShape(Capsule())
         }
         .padding()
     }

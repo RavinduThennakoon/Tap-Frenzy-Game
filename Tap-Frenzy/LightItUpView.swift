@@ -10,6 +10,8 @@ struct LightItUpView: View {
     @State private var timeRemaining = 60
     @State private var isRoundActive = true
 
+    @Environment(\.dismiss) private var dismiss
+
     @AppStorage("lightItUp_highScore") private var highScore = 0
 
     private let roundClock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -43,9 +45,23 @@ struct LightItUpView: View {
             .padding()
 
             if !isRoundActive {
-                Text("Round over — Score \(score) · Best \(highScore)")
-                    .font(.title3.bold())
-                    .padding(.top)
+                VStack(spacing: 12) {
+                    Text("Round over — Score \(score) · Best \(highScore)")
+                        .font(.title3.bold())
+
+                    HStack(spacing: 16) {
+                        Button("Play Again") {
+                            startRound()
+                        }
+                        .buttonStyle(.borderedProminent)
+
+                        Button("Home") {
+                            dismiss()
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .padding(.top)
             }
         }
         .navigationTitle("Light It Up")
