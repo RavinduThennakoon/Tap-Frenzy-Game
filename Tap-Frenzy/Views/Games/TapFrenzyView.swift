@@ -1,7 +1,7 @@
 import SwiftUI
 import Combine
 
-struct ContentView: View {
+struct TapFrenzyView: View {
     // MARK: - Game State
     @State private var score = 0
     @State private var timeRemaining = 10
@@ -136,5 +136,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    TapFrenzyView()
 }
