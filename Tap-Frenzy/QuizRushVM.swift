@@ -22,6 +22,7 @@ class QuizRushVM: ObservableObject {
     @Published var streak = 0
     @Published var state: QuizState = .loading
     @Published var lastAnswerCorrect: Bool?
+    @Published var selectedAnswer: String?
 
     private let service = TriviaService()
 
@@ -51,6 +52,7 @@ class QuizRushVM: ObservableObject {
         guard let question = currentQuestion else { return }
         let correct = selected == question.correctAnswer
 
+        selectedAnswer = selected
         lastAnswerCorrect = correct
 
         if correct {
@@ -61,6 +63,10 @@ class QuizRushVM: ObservableObject {
             score = max(0, score - 5)
         }
 
-        currentIndex += 1
+        // pause briefly so the color feedback is visible before moving on
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            self.currentIndex += 1
+            self.selectedAnswer = nil
+        }
     }
 }
