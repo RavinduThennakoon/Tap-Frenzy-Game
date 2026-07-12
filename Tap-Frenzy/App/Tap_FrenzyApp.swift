@@ -9,6 +9,9 @@ import SwiftUI
 
 @main
 struct Tap_FrenzyApp: App {
+    init() {
+           LocationService.shared.requestPermission()
+       }
     var body: some Scene {
         WindowGroup {
             HomeTab()
