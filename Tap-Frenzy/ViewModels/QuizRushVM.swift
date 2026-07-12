@@ -21,8 +21,8 @@ class QuizRushVM: ObservableObject {
     @Published var score = 0
     @Published var streak = 0
     @Published var state: QuizState = .loading
-    @Published var lastAnswerCorrect: Bool?
-    @Published var selectedAnswer: String?
+    @Published var lastAnswerCorrect: Bool? = nil
+    @Published var selectedAnswerIndex: Int? = nil
 
     private let service = TriviaService()
 
@@ -42,31 +42,41 @@ class QuizRushVM: ObservableObject {
             currentIndex = 0
             score = 0
             streak = 0
+            selectedAnswerIndex = nil
             state = .loaded
         } catch {
+            print("Error loading questions: \(error)")
             state = .failed
         }
     }
 
     func answer(_ selected: String) {
         guard let question = currentQuestion else { return }
-        let correct = selected == question.correctAnswer
+        
+        // Find selected answer index
+        let selectedIndex = question.allAnswers.firstIndex { $0 == selected }
+        let correctIndex = question.allAnswers.firstIndex { $0 == question.correctAnswer }
+        
+        selectedAnswerIndex = selectedIndex
+        
+        let isCorrect = (selectedIndex == correctIndex)
+        lastAnswerCorrect = isCorrect
 
-        selectedAnswer = selected
-        lastAnswerCorrect = correct
-
-        if correct {
+        if isCorrect {
             streak += 1
-            score += 10 + (streak >= 3 ? 5 : 0)
+            // Bonus points for 3+ streak
+            let bonus = streak >= 3 ? 5 : 0
+            score += 10 + bonus
         } else {
             streak = 0
             score = max(0, score - 5)
         }
 
-        // pause briefly so the color feedback is visible before moving on
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        // Pause to show color feedback before advancing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             self.currentIndex += 1
-            self.selectedAnswer = nil
+            self.selectedAnswerIndex = nil
         }
     }
 }
+
