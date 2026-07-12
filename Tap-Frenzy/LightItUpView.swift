@@ -1,5 +1,5 @@
 import SwiftUI
-internal import Combine
+import Combine
 
 struct LightItUpView: View {
     @State private var cards: [Card] = []
