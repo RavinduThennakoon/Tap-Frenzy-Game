@@ -23,6 +23,13 @@ struct TriviaQuestion: Codable, Identifiable {
         case incorrectAnswers = "incorrect_answers"
     }
 
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        question = try container.decode(String.self, forKey: .question).htmlDecoded
+        correctAnswer = try container.decode(String.self, forKey: .correctAnswer).htmlDecoded
+        incorrectAnswers = try container.decode([String].self, forKey: .incorrectAnswers).map { $0.htmlDecoded }
+    }
+
     var allAnswers: [String] {
         (incorrectAnswers + [correctAnswer]).shuffled()
     }

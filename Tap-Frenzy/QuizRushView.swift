@@ -59,14 +59,30 @@ struct QuizRushView: View {
 
             ForEach(question.allAnswers, id: \.self) { answer in
                 Button(answer) {
-                    withAnimation {
-                        vm.answer(answer)
-                    }
+                    vm.answer(answer)
                 }
-                .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity)
+                .padding()
+                .background(backgroundColorFor(answer, question: question))
+                .foregroundColor(foregroundColorFor(answer, question: question))
+                .cornerRadius(8)
+                .disabled(vm.selectedAnswer != nil)
             }
         }
+    }
+
+    private func backgroundColorFor(_ answer: String, question: TriviaQuestion) -> Color {
+        guard let selected = vm.selectedAnswer else { return .blue }
+        if answer == question.correctAnswer { return .green }
+        if answer == selected { return .red }
+        return .gray.opacity(0.3)
+    }
+
+    private func foregroundColorFor(_ answer: String, question: TriviaQuestion) -> Color {
+        guard let selected = vm.selectedAnswer else { return .white }
+        if answer == question.correctAnswer { return .white }
+        if answer == selected { return .white }
+        return .black
     }
 
     private var resultView: some View {
