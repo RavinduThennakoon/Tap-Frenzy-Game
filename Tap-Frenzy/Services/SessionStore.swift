@@ -62,4 +62,8 @@ class SessionStore: ObservableObject {
             print("Error clearing sessions: \(error)")
         }
     }
+    
+    func reset() {
+        clearSessions()
+    }
 }
