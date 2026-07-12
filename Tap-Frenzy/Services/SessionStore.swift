@@ -6,9 +6,12 @@
 //
 
 import Foundation
+import Combine
 
-class SessionStore {
+class SessionStore: ObservableObject {
     static let shared = SessionStore()
+    
+    @Published private(set) var sessions: [GameSession] = []
     
     private let sessionFileName = "game_sessions.json"
     
@@ -17,8 +20,11 @@ class SessionStore {
         return paths[0].appendingPathComponent(sessionFileName)
     }
     
+    private init() {
+        sessions = loadSessions()
+    }
+    
     func saveSession(_ session: GameSession) {
-        var sessions = loadSessions()
         sessions.append(session)
         
         do {
@@ -48,6 +54,8 @@ class SessionStore {
     }
     
     func clearSessions() {
+        sessions = []
+        
         do {
             try FileManager.default.removeItem(at: fileURL)
         } catch {
