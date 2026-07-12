@@ -123,21 +123,21 @@ struct TapFrenzyView: View {
 
     // MARK: - Logic
     func endGame() {
-    if score > highScore {
-        highScore = score
-    }
-    isGameOver = true
+        if score > highScore {
+            highScore = score
+        }
+        isGameOver = true
 
-    LocationService.shared.requestLocation()
-    let loc = LocationService.shared.lastLocation
-    let session = GameSession(
-        mode: .tapFrenzy,
-        score: score,
-        latitude: loc?.coordinate.latitude ?? 0,
-        longitude: loc?.coordinate.longitude ?? 0
-    )
-    SessionStore.shared.add(session)
-}
+        LocationService.shared.requestLocation { loc in
+            let session = GameSession(
+                mode: .tapFrenzy,
+                score: score,
+                latitude: loc?.coordinate.latitude ?? 0,
+                longitude: loc?.coordinate.longitude ?? 0
+            )
+            SessionStore.shared.add(session)
+        }
+    }
 
     func resetGame() {
         score = 0
