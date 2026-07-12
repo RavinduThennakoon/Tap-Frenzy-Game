@@ -11,6 +11,7 @@ import MapKit
 struct MapTab: View {
     @ObservedObject private var store = SessionStore.shared
     @State private var selectedSession: GameSession?
+    @State private var cameraPosition: MapCameraPosition = .automatic
 
     private func color(for mode: GameMode) -> Color {
         switch mode {
@@ -20,9 +21,21 @@ struct MapTab: View {
         }
     }
 
+    private func focus(on session: GameSession) {
+        selectedSession = session
+        withAnimation {
+            cameraPosition = .region(
+                MKCoordinateRegion(
+                    center: CLLocationCoordinate2D(latitude: session.latitude, longitude: session.longitude),
+                    span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+                )
+            )
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            Map {
+            Map(position: $cameraPosition) {
                 ForEach(store.sessions) { session in
                     Annotation(session.mode.rawValue, coordinate: CLLocationCoordinate2D(
                         latitude: session.latitude,
@@ -30,10 +43,11 @@ struct MapTab: View {
                     )) {
                         Circle()
                             .fill(color(for: session.mode))
-                            .frame(width: 16, height: 16)
+                            .frame(width: session.id == selectedSession?.id ? 22 : 14,
+                                   height: session.id == selectedSession?.id ? 22 : 14)
                             .overlay(Circle().stroke(.white, lineWidth: 2))
                             .onTapGesture {
-                                selectedSession = session
+                                focus(on: session)
                             }
                     }
                 }
@@ -47,7 +61,7 @@ struct MapTab: View {
                 } else {
                     ForEach(store.sessions.sorted(by: { $0.timestamp > $1.timestamp })) { session in
                         Button {
-                            selectedSession = session
+                            focus(on: session)
                         } label: {
                             HStack {
                                 Circle()
@@ -61,6 +75,7 @@ struct MapTab: View {
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
+                            .background(session.id == selectedSession?.id ? Color.gray.opacity(0.15) : .clear)
                         }
                         .foregroundStyle(.primary)
                     }
@@ -68,20 +83,6 @@ struct MapTab: View {
             }
         }
         .navigationTitle("Map")
-        .sheet(item: $selectedSession) { session in
-            VStack(spacing: 16) {
-                Text(session.mode.rawValue)
-                    .font(.title2.bold())
-                Text("Score: \(session.score)")
-                    .font(.title3)
-                Text(session.timestamp, style: .date)
-                    .foregroundStyle(.secondary)
-                Text(session.timestamp, style: .time)
-                    .foregroundStyle(.secondary)
-            }
-            .padding()
-            .presentationDetents([.height(220)])
-        }
     }
 }
 
