@@ -10,11 +10,31 @@ import SwiftUI
 @main
 struct Tap_FrenzyApp: App {
     init() {
-           LocationService.shared.requestPermission()
-       }
+        LocationService.shared.requestPermission()
+    }
     var body: some Scene {
         WindowGroup {
-            HomeTab()
+            TabView {
+                HomeTab()
+                    .tabItem {
+                        Label("Home", systemImage: "house")
+                    }
+
+                StatsTab()
+                    .tabItem {
+                        Label("Stats", systemImage: "chart.bar")
+                    }
+
+                MapTab()
+                    .tabItem {
+                        Label("Map", systemImage: "map")
+                    }
+
+                SettingsTab()
+                    .tabItem {
+                        Label("Settings", systemImage: "gearshape")
+                    }
+            }
         }
     }
 }
