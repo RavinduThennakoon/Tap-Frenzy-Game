@@ -18,6 +18,11 @@ struct HomeView: View {
 					LightItUpView()
 				}
 				.buttonStyle(.borderedProminent)
+                
+                NavigationLink("Quiz Rush") {
+                    QuizRushView()
+                }
+                .buttonStyle(.borderedProminent)
 			}
 			.padding()
 		}
