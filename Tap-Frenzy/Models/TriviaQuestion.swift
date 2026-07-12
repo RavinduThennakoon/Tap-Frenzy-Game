@@ -16,6 +16,7 @@ struct TriviaQuestion: Codable, Identifiable {
     let question: String
     let correctAnswer: String
     let incorrectAnswers: [String]
+    let allAnswers: [String]
 
     enum CodingKeys: String, CodingKey {
         case question
@@ -25,12 +26,22 @@ struct TriviaQuestion: Codable, Identifiable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        question = try container.decode(String.self, forKey: .question).htmlDecoded
-        correctAnswer = try container.decode(String.self, forKey: .correctAnswer).htmlDecoded
-        incorrectAnswers = try container.decode([String].self, forKey: .incorrectAnswers).map { $0.htmlDecoded }
-    }
+        question = try container.decode(String.self, forKey: .question).htmlDecoded.trimmingCharacters(in: .whitespaces)
+        correctAnswer = try container.decode(String.self, forKey: .correctAnswer).htmlDecoded.trimmingCharacters(in: .whitespaces)
+        incorrectAnswers = try container.decode([String].self, forKey: .incorrectAnswers).map { $0.htmlDecoded.trimmingCharacters(in: .whitespaces) }
 
-    var allAnswers: [String] {
-        (incorrectAnswers + [correctAnswer]).shuffled()
+        let answers = (incorrectAnswers + [correctAnswer]).shuffled()
+        var unique: [String] = []
+        var seenLowercase: Set<String> = []
+
+        for answer in answers {
+            let normalized = answer.lowercased().trimmingCharacters(in: .whitespaces)
+            if !seenLowercase.contains(normalized) {
+                seenLowercase.insert(normalized)
+                unique.append(answer)
+            }
+        }
+
+        allAnswers = unique
     }
 }
