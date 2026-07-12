@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import CoreLocation
 
 enum QuizState {
     case loading
@@ -75,6 +76,19 @@ class QuizRushVM: ObservableObject {
         // Pause to show color feedback before advancing
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             self.currentIndex += 1
+
+            if self.currentIndex >= self.questions.count {
+                LocationService.shared.requestLocation()
+                let loc = LocationService.shared.lastLocation
+                let session = GameSession(
+                    mode: .quizRush,
+                    score: self.score,
+                    latitude: loc?.coordinate.latitude ?? 0,
+                    longitude: loc?.coordinate.longitude ?? 0
+                )
+                SessionStore.shared.add(session)
+            }
+
             self.selectedAnswerIndex = nil
         }
     }

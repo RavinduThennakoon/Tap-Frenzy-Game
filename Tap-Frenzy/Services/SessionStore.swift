@@ -28,6 +28,10 @@ class SessionStore {
             print("Error saving session: \(error)")
         }
     }
+
+    func add(_ session: GameSession) {
+        saveSession(session)
+    }
     
     func loadSessions() -> [GameSession] {
         guard FileManager.default.fileExists(atPath: fileURL.path) else {

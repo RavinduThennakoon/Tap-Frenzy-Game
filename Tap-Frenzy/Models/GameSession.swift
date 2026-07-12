@@ -9,16 +9,28 @@ import Foundation
 
 struct GameSession: Identifiable, Codable {
     let id: UUID
-    let gameMode: String
+    let mode: GameMode
     let score: Int
     let timestamp: Date
     let duration: TimeInterval
-    
-    init(id: UUID = UUID(), gameMode: String, score: Int, timestamp: Date = Date(), duration: TimeInterval = 0) {
+    let latitude: Double
+    let longitude: Double
+
+    init(
+        id: UUID = UUID(),
+        mode: GameMode,
+        score: Int,
+        timestamp: Date = Date(),
+        duration: TimeInterval = 0,
+        latitude: Double = 0,
+        longitude: Double = 0
+    ) {
         self.id = id
-        self.gameMode = gameMode
+        self.mode = mode
         self.score = score
         self.timestamp = timestamp
         self.duration = duration
+        self.latitude = latitude
+        self.longitude = longitude
     }
 }
