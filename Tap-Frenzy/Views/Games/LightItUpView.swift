@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import CoreLocation
 
 struct LightItUpView: View {
     @State private var cards: [Card] = []
@@ -133,10 +134,20 @@ struct LightItUpView: View {
     }
 
     private func endRound() {
-        isRoundActive = false
-        litCardIDs = []
-        if score > highScore { highScore = score }
-    }
+    isRoundActive = false
+    litCardIDs = []
+    if score > highScore { highScore = score }
+
+    LocationService.shared.requestLocation()
+    let loc = LocationService.shared.lastLocation
+    let session = GameSession(
+        mode: .lightItUp,
+        score: score,
+        latitude: loc?.coordinate.latitude ?? 0,
+        longitude: loc?.coordinate.longitude ?? 0
+    )
+    SessionStore.shared.add(session)
+}
 }
 
 #Preview {
