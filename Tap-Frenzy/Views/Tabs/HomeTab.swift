@@ -1,7 +1,6 @@
 import SwiftUI
 
-struct HomeView: View {
-	private typealias TapFrenzyView = ContentView
+struct HomeTab: View {
 
 	var body: some View {
 		NavigationStack {
@@ -30,5 +29,5 @@ struct HomeView: View {
 }
 
 #Preview {
-	HomeView()
+	HomeTab()
 }

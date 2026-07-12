@@ -11,7 +11,7 @@ import SwiftUI
 struct Tap_FrenzyApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            HomeTab()
         }
     }
 }
