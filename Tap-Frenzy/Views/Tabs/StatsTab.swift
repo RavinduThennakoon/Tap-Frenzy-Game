@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Charts
 
 struct StatsTab: View {
     @ObservedObject private var store = SessionStore.shared
@@ -28,6 +29,19 @@ struct StatsTab: View {
                         Text("\(bestScore(for: mode))")
                             .foregroundStyle(.secondary)
                     }
+                }
+            }
+
+            if !store.sessions.isEmpty {
+                Section("Scores by Session") {
+                    Chart(store.sessions) { session in
+                        BarMark(
+                            x: .value("Time", session.timestamp),
+                            y: .value("Score", session.score)
+                        )
+                        .foregroundStyle(by: .value("Mode", session.mode.rawValue))
+                    }
+                    .frame(height: 200)
                 }
             }
 
