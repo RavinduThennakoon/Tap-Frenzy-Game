@@ -1,162 +1,198 @@
-//
-//  QuizRushView.swift
-//  Tap-Frenzy
-//
-//  Created by StudentR on 2026-07-12.
-//
-
 import SwiftUI
+
+private enum QuizRushPalette {
+    static let background = Color(red: 0.05, green: 0.09, blue: 0.18)
+    static let surface = Color(red: 0.10, green: 0.14, blue: 0.24)
+    static let accent = Color(red: 0.12, green: 0.86, blue: 0.70)
+    static let inactive = Color(red: 0.16, green: 0.20, blue: 0.30)
+}
+
+private struct AnswerButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(.easeOut(duration: 0.2), value: configuration.isPressed)
+    }
+}
 
 struct QuizRushView: View {
     @StateObject private var vm = QuizRushVM()
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        
-            VStack(spacing: 20) {
-                switch vm.state {
-                case .loading:
-                    ProgressView("Loading trivia questions...")
+        ZStack {
+            QuizRushPalette.background.ignoresSafeArea()
 
-                case .failed:
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle")
-                            .font(.system(size: 48))
-                            .foregroundColor(.orange)
-                        Text("Couldn't load questions")
-                            .font(.headline)
-                        Text("Check your internet connection")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                        Button(action: {
-                            Task { await vm.load() }
-                        }) {
-                            Label("Retry", systemImage: "arrow.clockwise")
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-
-                case .loaded:
-                    if vm.isFinished {
-                        resultView
-                    } else if let question = vm.currentQuestion {
-                        quizView(for: question)
-                    }
-                }
-            }
-            .padding()
-            .navigationTitle("Quiz Rush")
-            .navigationBarTitleDisplayMode(.inline)
-        
+            content
+                .padding()
+        }
+        .navigationTitle("Quiz Rush")
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             await vm.load()
         }
     }
 
-    private func quizView(for question: TriviaQuestion) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("Q\(vm.currentIndex + 1)/\(vm.questions.count)")
-                Spacer()
-                Text("Score: \(vm.score)")
-                Spacer()
-                Text("Streak: \(vm.streak)")
-            }
-            .font(.headline)
+    @ViewBuilder
+    private var content: some View {
+        switch vm.state {
+        case .loading:
+            ProgressView("Loading trivia questions...")
+                .progressViewStyle(.circular)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            Text(question.question)
-                .font(.title3.bold())
-                .padding(.vertical, 8)
-
-            ForEach(Array(question.allAnswers.enumerated()), id: \.offset) { index, answer in
+        case .failed:
+            VStack(spacing: 18) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.orange)
+                Text("Couldn't load questions")
+                    .font(.system(size: 20, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white)
+                Text("Check your internet connection and try again.")
+                    .font(.system(size: 14, design: .rounded))
+                    .foregroundColor(.gray)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
                 Button(action: {
-                    vm.answer(answer)
+                    Task { await vm.load() }
                 }) {
-                    HStack(spacing: 12) {
-                        Text(answer)
-                            .lineLimit(2)
-                        Spacer()
-                        if vm.selectedAnswerIndex != nil {
-                            let correctIndex = question.allAnswers.firstIndex { $0 == question.correctAnswer }
-                            if index == correctIndex {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title3)
-                            } else if index == vm.selectedAnswerIndex && vm.selectedAnswerIndex != correctIndex {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.title3)
+                    Label("Retry", systemImage: "arrow.clockwise")
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(QuizRushPalette.accent)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+        case .loaded:
+            if vm.isFinished {
+                resultView
+            } else if let question = vm.currentQuestion {
+                quizView(for: question)
+            }
+        }
+    }
+
+    private func quizView(for question: TriviaQuestion) -> some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 14) {
+                HStack(spacing: 16) {
+                    scoreChip(label: "Q", value: "\(vm.currentIndex + 1)/\(vm.questions.count)")
+                    scoreChip(label: "Score", value: "\(vm.score)")
+                    scoreChip(label: "Streak", value: "\(vm.streak)")
+                }
+
+                Text(question.question)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.leading)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(QuizRushPalette.surface)
+                    .cornerRadius(24)
+            }
+
+            VStack(spacing: 14) {
+                ForEach(Array(question.allAnswers.enumerated()), id: \.offset) { index, answer in
+                    Button(action: {
+                        vm.answer(answer)
+                    }) {
+                        HStack(alignment: .top, spacing: 12) {
+                            Text(answer)
+                                .foregroundColor(.white)
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .multilineTextAlignment(.leading)
+                            Spacer()
+                            if vm.selectedAnswerIndex != nil {
+                                let correctIndex = question.allAnswers.firstIndex { $0 == question.correctAnswer }
+                                if index == correctIndex {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.white)
+                                        .font(.title3)
+                                } else if index == vm.selectedAnswerIndex && vm.selectedAnswerIndex != correctIndex {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .foregroundColor(.white)
+                                        .font(.title3)
+                                }
                             }
                         }
+                        .padding(16)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(backgroundColorFor(index: index, question: question))
+                        .cornerRadius(18)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 18)
+                                .stroke(Color.white.opacity(0.12), lineWidth: 1)
+                        )
                     }
+                    .buttonStyle(AnswerButtonStyle())
+                    .disabled(vm.selectedAnswerIndex != nil)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(12)
-                .background(backgroundColorFor(index: index, question: question))
-                .foregroundStyle(.white)
-                .font(.headline.bold())
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white.opacity(0.4), lineWidth: 2)
-                )
-                .disabled(vm.selectedAnswerIndex != nil)
             }
+
+            Spacer()
         }
     }
 
     private func backgroundColorFor(index: Int, question: TriviaQuestion) -> Color {
         guard let selectedIndex = vm.selectedAnswerIndex else {
-            return Color.blue.opacity(0.6)
+            return QuizRushPalette.inactive
         }
-        
+
         let correctIndex = question.allAnswers.firstIndex { $0 == question.correctAnswer }
-        let isCorrectAnswer = (index == correctIndex)
-        let isSelectedAnswer = (index == selectedIndex)
-        
-        // Green = correct answer
-        if isCorrectAnswer {
-            return Color.green.opacity(0.85)
+        if index == correctIndex {
+            return Color.green.opacity(0.88)
         }
-        
-        // Red = wrong answer clicked
-        if isSelectedAnswer && !isCorrectAnswer {
-            return Color.red.opacity(0.85)
+        if index == selectedIndex {
+            return Color.red.opacity(0.88)
         }
-        
-        // Gray = unselected
-        return Color.gray.opacity(0.35)
+        return Color.gray.opacity(0.25)
+    }
+
+    private func scoreChip(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(label)
+                .font(.system(size: 12, weight: .medium, design: .rounded))
+                .foregroundColor(.gray)
+            Text(value)
+                .font(.system(size: 16, weight: .bold, design: .rounded))
+                .foregroundColor(.white)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity)
+        .background(QuizRushPalette.surface)
+        .cornerRadius(18)
     }
 
     private var resultView: some View {
-        VStack(spacing: 20) {
-            VStack(spacing: 12) {
-                Image(systemName: "checkmark.circle.fill")
+        VStack(spacing: 24) {
+            VStack(spacing: 14) {
+                Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.green)
-                
+                    .foregroundColor(QuizRushPalette.accent)
                 Text("Quiz Complete!")
-                    .font(.title.bold())
+                    .font(.system(size: 30, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
             }
-            .padding(.top, 20)
-            
-            VStack(spacing: 8) {
+
+            VStack(spacing: 10) {
                 Text("Final Score")
-                    .font(.caption.bold())
                     .foregroundColor(.gray)
-                
-                Text(String(vm.score))
-                    .font(.system(size: 48, weight: .bold))
-                    .foregroundColor(.blue)
-                
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                Text("\(vm.score)")
+                    .font(.system(size: 52, weight: .bold, design: .rounded))
+                    .foregroundColor(QuizRushPalette.accent)
                 Text("\(vm.questions.count) questions")
-                    .font(.caption)
+                    .font(.system(size: 14, design: .rounded))
                     .foregroundColor(.gray)
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(Color(.systemGray6))
-            .cornerRadius(12)
-            
+            .background(QuizRushPalette.surface)
+            .cornerRadius(22)
+
             HStack(spacing: 12) {
                 Button(action: {
                     Task { await vm.load() }
@@ -165,7 +201,8 @@ struct QuizRushView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                
+                .tint(QuizRushPalette.accent)
+
                 Button(action: {
                     dismiss()
                 }) {
@@ -173,13 +210,21 @@ struct QuizRushView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .tint(.white)
             }
-            ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!")
-            .padding(.top, 4)
-            
+
+            ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!") {
+                Label("Share your score", systemImage: "square.and.arrow.up")
+            }
+            .foregroundColor(.gray)
+            .font(.system(size: 14, design: .rounded))
+
             Spacer()
         }
         .padding()
+        .background(QuizRushPalette.surface)
+        .cornerRadius(28)
+        .shadow(color: Color.black.opacity(0.30), radius: 18, x: 0, y: 16)
     }
 }
 
