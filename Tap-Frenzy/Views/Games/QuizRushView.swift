@@ -174,6 +174,8 @@ struct QuizRushView: View {
                 }
                 .buttonStyle(.bordered)
             }
+            ShareLink(item: "I just scored \(vm.score) on Quiz Rush — beat that!")
+            .padding(.top, 4)
             
             Spacer()
         }
