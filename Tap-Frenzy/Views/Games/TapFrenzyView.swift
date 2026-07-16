@@ -7,10 +7,10 @@ struct TapFrenzyView: View {
     @AppStorage("tapFrenzy_highScore") private var highScore = 0
     @State private var timeRemaining = 10
     @State private var isGameOver = false
-    @State private var highScore = 0
     @Environment(\.dismiss) private var dismiss
     @State private var isBonusColor = true
     @State private var colorSwitchCounter = 0
+    @State private var score = 0
 
     // A timer that fires once per second
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -82,44 +82,48 @@ struct TapFrenzyView: View {
     }
 
     // MARK: - Game Over Screen
-    var gameOverView: some View {
-        VStack(spacing: 24) {
-            Text("Game Over")
-                .font(.largeTitle)
-                .bold()
+   var gameOverView: some View {
+    VStack(spacing: 24) {
+        Text("Game Over")
+            .font(.largeTitle)
+            .bold()
 
-            Text("Final Score: \(score)")
-                .font(.title2)
-            if score >= highScore {
-                Text("New High Score!")
-                    .foregroundStyle(.red)
-            } else {
-                Text("High Score: \(highScore)")
-                    .foregroundStyle(.secondary)
-            }
-
-            HStack(spacing: 16) {
-                Button("Play Again") {
-                    resetGame()
-                }
-                .font(.title3)
-                .padding()
-                .background(Color.blue)
-                .foregroundStyle(.white)
-                .clipShape(Capsule())
-
-                Button("Home") {
-                    dismiss()
-                }
-                .font(.title3)
-                .padding()
-                .background(Color.gray.opacity(0.2))
-                .foregroundStyle(.primary)
-                .clipShape(Capsule())
-            }
+        Text("Final Score: \(score)")
+            .font(.title2)
+        if score >= highScore {
+            Text("New High Score!")
+                .foregroundStyle(.red)
+        } else {
+            Text("High Score: \(highScore)")
+                .foregroundStyle(.secondary)
         }
-        .padding()
+
+        HStack(spacing: 16) {
+            Button("Play Again") {
+                resetGame()
+            }
+            .font(.title3)
+            .padding()
+            .background(Color.blue)
+            .foregroundStyle(.white)
+            .clipShape(Capsule())
+
+            Button("Home") {
+                dismiss()
+            }
+            .font(.title3)
+            .padding()
+            .background(Color.gray.opacity(0.2))
+            .foregroundStyle(.primary)
+            .clipShape(Capsule())
+        }
+
+        ShareLink(item: "I just scored \(score) on Tap Frenzy — beat that!")
+            .font(.title3)
+            .padding(.top, 8)
     }
+    .padding()
+}
 
     // MARK: - Logic
     func endGame() {
