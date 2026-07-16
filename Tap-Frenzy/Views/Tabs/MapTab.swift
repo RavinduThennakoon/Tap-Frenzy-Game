@@ -47,17 +47,27 @@ struct MapTab: View {
         }
     }
 
+    private func focus(on session: GameSession, proxy: ScrollViewProxy) {
+        focus(on: session)
+        withAnimation {
+            proxy.scrollTo("mapTop", anchor: .top)
+        }
+    }
+
     var body: some View {
         ZStack {
             MapPalette.background.ignoresSafeArea()
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 18) {
-                    mapSection
+            ScrollViewReader { proxy in
+                ScrollView(showsIndicators: false) {
+                    VStack(spacing: 18) {
+                        mapSection
+                            .id("mapTop")
 
-                    sessionPanel
+                        sessionPanel(proxy: proxy)
+                    }
+                    .padding(.vertical)
                 }
-                .padding(.vertical)
             }
         }
         .navigationTitle("Map")
@@ -97,7 +107,7 @@ struct MapTab: View {
         .padding(.horizontal)
     }
 
-    private var sessionPanel: some View {
+    private func sessionPanel(proxy: ScrollViewProxy) -> some View {
         VStack(spacing: 14) {
             HStack {
                 Text("Sessions")
@@ -132,7 +142,7 @@ struct MapTab: View {
                 VStack(spacing: 12) {
                     ForEach(store.sessions.sorted(by: { $0.timestamp > $1.timestamp })) { session in
                         Button {
-                            focus(on: session)
+                            focus(on: session, proxy: proxy)
                         } label: {
                             HStack(spacing: 12) {
                                 Circle()
