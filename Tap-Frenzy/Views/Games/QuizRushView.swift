@@ -12,7 +12,7 @@ struct QuizRushView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        NavigationStack {
+        
             VStack(spacing: 20) {
                 switch vm.state {
                 case .loading:
@@ -48,7 +48,7 @@ struct QuizRushView: View {
             .padding()
             .navigationTitle("Quiz Rush")
             .navigationBarTitleDisplayMode(.inline)
-        }
+        
         .task {
             await vm.load()
         }
