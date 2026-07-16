@@ -4,7 +4,7 @@ import CoreLocation
 
 struct TapFrenzyView: View {
     // MARK: - Game State
-    @State private var score = 0
+    @AppStorage("tapFrenzy_highScore") private var highScore = 0
     @State private var timeRemaining = 10
     @State private var isGameOver = false
     @State private var highScore = 0
