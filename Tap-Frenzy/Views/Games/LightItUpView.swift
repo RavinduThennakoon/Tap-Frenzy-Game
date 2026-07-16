@@ -61,6 +61,8 @@ struct LightItUpView: View {
                         }
                         .buttonStyle(.bordered)
                     }
+                    ShareLink(item: "I just scored \(score) on Light It Up — beat that!")
+                   .padding(.top, 4)
                 }
                 .padding(.top)
             }
