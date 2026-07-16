@@ -1,6 +1,6 @@
 import SwiftUI
 import Combine
-import CoreLocation
+internal import _LocationEssentials
 
 private enum TapFrenzyPalette {
     static let background = Color(red: 0.05, green: 0.09, blue: 0.18)
@@ -218,3 +218,4 @@ struct TapFrenzyView: View {
 #Preview {
     TapFrenzyView()
 }
+
