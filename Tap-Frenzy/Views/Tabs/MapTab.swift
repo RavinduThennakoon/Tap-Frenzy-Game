@@ -1,25 +1,39 @@
-//
-//  MapTab.swift
-//  Tap-Frenzy
-//
-//  Created by StudentR on 2026-07-12.
-//
-
 import SwiftUI
 import MapKit
+
+private enum MapPalette {
+    static let background = Color(red: 0.06, green: 0.09, blue: 0.18)
+    static let surface = Color(red: 0.10, green: 0.14, blue: 0.24)
+    static let accent = Color(red: 0.12, green: 0.86, blue: 0.70)
+}
+
+private enum MapModeStyle {
+    static func icon(for mode: GameMode) -> String {
+        switch mode {
+        case .tapFrenzy: return "hand.tap.fill"
+        case .lightItUp: return "bolt.fill"
+        case .quizRush: return "questionmark.circle.fill"
+        }
+    }
+
+    static func color(for mode: GameMode) -> Color {
+        switch mode {
+        case .tapFrenzy: return Color.green
+        case .lightItUp: return Color.blue
+        case .quizRush: return Color.orange
+        }
+    }
+}
 
 struct MapTab: View {
     @ObservedObject private var store = SessionStore.shared
     @State private var selectedSession: GameSession?
-    @State private var cameraPosition: MapCameraPosition = .automatic
-
-    private func color(for mode: GameMode) -> Color {
-        switch mode {
-        case .tapFrenzy: return .green
-        case .lightItUp: return .blue
-        case .quizRush: return .orange
-        }
-    }
+    @State private var cameraPosition: MapCameraPosition = .region(
+        MKCoordinateRegion(
+            center: CLLocationCoordinate2D(latitude: 20, longitude: 0),
+            span: MKCoordinateSpan(latitudeDelta: 120, longitudeDelta: 120)
+        )
+    )
 
     private func focus(on session: GameSession) {
         selectedSession = session
@@ -34,55 +48,148 @@ struct MapTab: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Map(position: $cameraPosition) {
+        ZStack {
+            MapPalette.background.ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 18) {
+                    mapSection
+
+                    sessionPanel
+                }
+                .padding(.vertical)
+            }
+        }
+        .navigationTitle("Map")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            if selectedSession == nil, let latest = store.sessions.last {
+                focus(on: latest)
+            }
+        }
+    }
+
+    private var mapSection: some View {
+        ZStack(alignment: .bottomTrailing) {
+            Map(position: $cameraPosition, interactionModes: .all) {
+                // Add annotations for each session
                 ForEach(store.sessions) { session in
-                    Annotation(session.mode.rawValue, coordinate: CLLocationCoordinate2D(
-                        latitude: session.latitude,
-                        longitude: session.longitude
-                    )) {
-                        Circle()
-                            .fill(color(for: session.mode))
-                            .frame(width: session.id == selectedSession?.id ? 22 : 14,
-                                   height: session.id == selectedSession?.id ? 22 : 14)
-                            .overlay(Circle().stroke(.white, lineWidth: 2))
-                            .onTapGesture {
-                                focus(on: session)
-                            }
+                    let coord = CLLocationCoordinate2D(latitude: session.latitude, longitude: session.longitude)
+                    Annotation("\(session.mode.rawValue)", coordinate: coord) {
+                        annotationView(for: session)
                     }
                 }
             }
-            .frame(height: 300)
+            .frame(height: 320)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .shadow(color: Color.black.opacity(0.26), radius: 18, x: 0, y: 12)
 
-            List {
-                if store.sessions.isEmpty {
-                    Text("Play a game to see it appear on the map.")
-                        .foregroundStyle(.secondary)
-                } else {
+            if store.sessions.isEmpty {
+                Text("Play a game to place your first session on the map.")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundColor(.white)
+                    .padding(16)
+                    .background(Color.black.opacity(0.45))
+                    .cornerRadius(18)
+                    .padding(18)
+            }
+        }
+        .padding(.horizontal)
+    }
+
+    private var sessionPanel: some View {
+        VStack(spacing: 14) {
+            HStack {
+                Text("Sessions")
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
+                Spacer()
+                Text("\(store.sessions.count)")
+                    .foregroundColor(.gray)
+            }
+
+            if let selected = selectedSession {
+                VStack(alignment: .leading, spacing: 8) {
+                    Label(selected.mode.rawValue, systemImage: MapModeStyle.icon(for: selected.mode))
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .foregroundColor(MapModeStyle.color(for: selected.mode))
+                    Text("Score: \(selected.score)")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Text(selected.timestamp, style: .date)
+                        .foregroundColor(.gray)
+                        .font(.system(size: 13, weight: .regular, design: .rounded))
+                }
+                .padding()
+                .background(MapPalette.surface)
+                .cornerRadius(20)
+                .shadow(color: Color.black.opacity(0.18), radius: 12, x: 0, y: 8)
+            }
+
+            if store.sessions.isEmpty {
+                EmptyStateView(text: "No sessions yet. Finish a game and check your location here.")
+            } else {
+                VStack(spacing: 12) {
                     ForEach(store.sessions.sorted(by: { $0.timestamp > $1.timestamp })) { session in
                         Button {
                             focus(on: session)
                         } label: {
-                            HStack {
+                            HStack(spacing: 12) {
                                 Circle()
-                                    .fill(color(for: session.mode))
-                                    .frame(width: 10, height: 10)
-                                Text(session.mode.rawValue)
+                                    .fill(MapModeStyle.color(for: session.mode))
+                                    .frame(width: 12, height: 12)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(session.mode.rawValue)
+                                        .foregroundColor(.white)
+                                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                    Text(session.timestamp, style: .date)
+                                        .foregroundColor(.gray)
+                                        .font(.system(size: 12, weight: .regular, design: .rounded))
+                                }
                                 Spacer()
                                 Text("\(session.score)")
-                                    .foregroundStyle(.secondary)
-                                Text(session.timestamp, style: .date)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .foregroundColor(MapModeStyle.color(for: session.mode))
+                                    .font(.system(size: 16, weight: .bold, design: .rounded))
                             }
-                            .background(session.id == selectedSession?.id ? Color.gray.opacity(0.15) : .clear)
+                            .padding()
+                            .background(session.id == selectedSession?.id ? MapPalette.background : MapPalette.surface)
+                            .cornerRadius(18)
                         }
-                        .foregroundStyle(.primary)
+                        .buttonStyle(.plain)
                     }
                 }
             }
         }
-        .navigationTitle("Map")
+        .padding(.horizontal)
+    }
+
+    private func annotationView(for session: GameSession) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: MapModeStyle.icon(for: session.mode))
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.white)
+                .padding(10)
+                .background(MapModeStyle.color(for: session.mode))
+                .clipShape(Circle())
+                .shadow(color: Color.black.opacity(0.25), radius: 10, x: 0, y: 6)
+                .overlay(
+                    Circle()
+                        .stroke(Color.white, lineWidth: session.id == selectedSession?.id ? 2 : 0)
+                )
+                .scaleEffect(session.id == selectedSession?.id ? 1.15 : 1.0)
+                .onTapGesture { focus(on: session) }
+        }
+    }
+
+    private func EmptyStateView(text: String) -> some View {
+        Text(text)
+            .font(.system(size: 14, weight: .regular, design: .rounded))
+            .foregroundColor(.gray)
+            .multilineTextAlignment(.center)
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(MapPalette.surface)
+            .cornerRadius(18)
     }
 }
 
