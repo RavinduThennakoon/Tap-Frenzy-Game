@@ -6,10 +6,14 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 @main
 struct Tap_FrenzyApp: App {
+    private let notificationDelegate = NotificationDelegate()
+
     init() {
+        UNUserNotificationCenter.current().delegate = notificationDelegate
         LocationService.shared.requestPermission()
     }
     var body: some Scene {

@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import CoreLocation
+internal import _LocationEssentials
 
 enum QuizState {
     case loading
